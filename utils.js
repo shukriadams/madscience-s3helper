@@ -65,7 +65,7 @@ module.exports = {
     /**
      * Gets file as string
      */
-    getFile : async(key, secret, bucket, file, localPath)=>{
+    getFile : async(key, secret, bucket, file)=>{
         return new Promise(async (resolve, reject)=>{
             
             AWS.config.update({ 
