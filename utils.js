@@ -5,13 +5,15 @@ module.exports = {
 
     /**
      * Uploads a local file to s3
+     * config : {
+     *      accessKeyId: key, 
+     *      endpoint, // egs "eu-central-1.linodeobjects.com" for linode
+     *      secretAccessKey: secret 
+     * }
      */
-    putFile : async(key, secret, bucket, localFilepath, writePath) =>{
+    putFile : async(config, bucket, localFilepath, writePath) =>{
         return new Promise((resolve, reject) =>{
-            AWS.config.update({ 
-                accessKeyId: key, 
-                secretAccessKey: secret 
-            })
+            AWS.config.update(config)
 
             const s3 = new AWS.S3()
 
@@ -37,14 +39,16 @@ module.exports = {
 
     /**
      * Writes file content to s3
+     * config : {
+     *      accessKeyId: key, 
+     *      endpoint, // egs "eu-central-1.linodeobjects.com" for linode
+     *      secretAccessKey: secret 
+     * }
      */
-    writeFile : async(key, secret, bucket, writePath, fileContent) =>{
+    writeFile : async(config, bucket, writePath, fileContent) =>{
         return new Promise((resolve, reject)=>{
 
-            AWS.config.update({ 
-                accessKeyId: key, 
-                secretAccessKey: secret 
-            })
+            AWS.config.update(config)
 
             const s3 = new AWS.S3()
 
@@ -64,14 +68,16 @@ module.exports = {
 
     /**
      * Gets file as string
+     * config : {
+     *      accessKeyId: key, 
+     *      endpoint, // egs "eu-central-1.linodeobjects.com" for linode
+     *      secretAccessKey: secret 
+     * }
      */
-    getFile : async(key, secret, bucket, file)=>{
+    getStringFile : async(config, bucket, file)=>{
         return new Promise(async (resolve, reject)=>{
             
-            AWS.config.update({ 
-                accessKeyId: key, 
-                secretAccessKey: secret 
-            })
+            AWS.config.update(config)
 
             const s3 = new AWS.S3()
 
@@ -82,23 +88,51 @@ module.exports = {
                 if(err)
                     return reject(err)
 
+                let body = res.Body
+
+                // if body is binary, convert to string
+                if (typeof(body) === 'object')
+                    body = body.toString('utf8')
+
+                resolve(body)
+            })
+
+        })
+    },
+
+    getBinaryFile : async(config, bucket, file)=>{
+        return new Promise(async (resolve, reject)=>{
+            
+            AWS.config.update(config)
+
+            const s3 = new AWS.S3()
+
+            s3.getObject({
+                Bucket: bucket,
+                Key: file,
+            }, (err, res) => {
+                if(err)
+                    return reject(err)
+                
+                console.log('>>>', res.Body)
                 resolve(res.Body)
             })
 
         })
     },
 
-
     /**
      * Downloads a file and writes it to local path
+     * config : {
+     *      accessKeyId: key, 
+     *      endpoint, // egs "eu-central-1.linodeobjects.com" for linode
+     *      secretAccessKey: secret 
+     * }
      */
-    downloadFile : async(key, secret, bucket, file, localPath)=>{
+    downloadFile : async(config, bucket, file, localPath)=>{
         return new Promise(async (resolve, reject)=>{
             
-            AWS.config.update({ 
-                accessKeyId: key, 
-                secretAccessKey: secret 
-            })
+            AWS.config.update(config)
 
             const s3 = new AWS.S3()
 
@@ -121,14 +155,16 @@ module.exports = {
 
     /**
      * Returns true if a file exists on S3
+     * config : {
+     *      accessKeyId: key, 
+     *      endpoint, // egs "eu-central-1.linodeobjects.com" for linode
+     *      secretAccessKey: secret 
+     * }
      */
-    fileExists : async(key, secret, bucket, queryPath) =>{
+    fileExists : async(config, bucket, queryPath) =>{
         return new Promise((resolve, reject)=>{
             
-            AWS.config.update({ 
-                accessKeyId: key, 
-                secretAccessKey: secret 
-            })
+            AWS.config.update(config)
 
             const s3 = new AWS.S3()
 
