@@ -114,10 +114,35 @@ module.exports = {
                 if(err)
                     return reject(err)
                 
-                console.log('>>>', res.Body)
                 resolve(res.Body)
             })
 
+        })
+    },
+
+    /**
+     * Warning! Do not use this unless confirming the file already exists. aws sdk will throw an unhandleable 'nosuchkey' or 'SignatureDoesNotMatch' stream exception if the file you're tring to stream can't be found.
+     * 
+     */
+    streamFile : async(config, bucket, file, stream)=>{
+        return new Promise(async (resolve, reject)=>{
+            
+            AWS.config.update(config)
+
+            const s3 = new AWS.S3()
+            
+            const s3Stream = s3.getObject({
+                Bucket: bucket,
+                Key: file,
+            }).createReadStream()
+
+            s3Stream.pipe(stream)
+                .on('error', function(err) {
+                    // capture any errors that occur when writing data to the file
+                    reject(err)
+                }).on('close', function() {
+                    resolve()
+                })
         })
     },
 
