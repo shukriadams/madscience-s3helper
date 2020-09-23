@@ -120,8 +120,10 @@ module.exports = {
         })
     },
 
+
+
     /**
-     * Warning! Do not use this unless confirming the file already exists. aws sdk will throw an unhandleable 'nosuchkey' or 'SignatureDoesNotMatch' stream exception if the file you're tring to stream can't be found.
+     * avoid using this, aws sdk will throw an unhandled 'nosuchkey' or 'SignatureDoesNotMatch' exception if the file you're tring to stream can't be found.
      * 
      */
     streamFile : async(config, bucket, file, stream)=>{
@@ -187,22 +189,23 @@ module.exports = {
      * }
      */
     fileExists : async(config, bucket, queryPath) =>{
-        return new Promise((resolve, reject)=>{
-            
-            AWS.config.update(config)
+        AWS.config.update(config)
+        const s3 = new AWS.S3()
 
-            const s3 = new AWS.S3()
-
-            s3.listObjects({
+        return await s3
+            .headObject({
                 Bucket: bucket,
-                Prefix : queryPath,
-            }, (err, data) => {
-                if (err)
-                    return reject(err)
-
-                resolve(!!data.Contents.length)
-
+                Key: queryPath,
             })
-        })
+            .promise()
+            .then(
+                function(){ return true },
+                function(err){
+                    if (err.code === 'NotFound') 
+                        return false
+
+                    throw err
+                }
+            )
     }   
 }
