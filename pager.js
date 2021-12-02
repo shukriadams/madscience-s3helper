@@ -14,7 +14,17 @@ module.exports = class {
     }
 
     /**
-     * Gets page of item from bucket
+     * Gets page of items from bucket. Item structure is
+     *  {
+     *      Key: string, path+filename within bucket,
+     *      LastModified: string datetime,
+     *      ETag: string UUID,
+     *      Size: int bytes ,
+     *      StorageClass: string egs 'STANDARD',
+     *      Owner: {
+     *          ID: string uuid
+     *      }
+     *   }
      */
     async getNextPage (){
         
@@ -63,7 +73,7 @@ module.exports = class {
         let items = []
 
         while (this.canFetchMore){
-            const page = await this._page()
+            const page = await this.getNextPage()
             items = items.concat(page)
         }
         
