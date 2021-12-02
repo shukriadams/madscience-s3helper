@@ -37,13 +37,15 @@ module.exports = class {
                     const key = data.Contents[i].Key   
     
                     // ignore root search folder
-                    if (key ===  `${subfolder}/`) 
+                    if (key ===  `${this.subfolder}/`) 
                         continue
     
                     items.push(data.Contents[i])
                 }
                 
-                this.startKey = data.Contents[data.Contents.length - 1].Key
+                if (data.Contents.length)
+                    this.startKey = data.Contents[data.Contents.length - 1].Key
+
                 this.canFetchMore = data.IsTruncated
     
                 resolve(items)
@@ -68,4 +70,4 @@ module.exports = class {
         return items
     }   
     
-}
+}   
