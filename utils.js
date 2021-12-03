@@ -38,6 +38,27 @@ module.exports = {
 
 
     /**
+     * Deletes a file on S3.
+     */
+    deleteFile : async(config, bucket, filePath) =>{
+        return new Promise((resolve, reject) =>{
+            AWS.config.update(config)
+
+            const s3 = new AWS.S3()
+            s3.deleteObject({
+                Bucket: bucket,
+                Key: filePath
+            }, err => {
+                if (err) 
+                    return reject(err)
+
+                resolve()
+            })
+        })
+    },
+
+
+    /**
      * Writes file content to s3
      * config : {
      *      accessKeyId: key, 
@@ -139,10 +160,10 @@ module.exports = {
             }).createReadStream()
 
             s3Stream.pipe(stream)
-                .on('error', function(err) {
+                .on('error', err => {
                     // capture any errors that occur when writing data to the file
                     reject(err)
-                }).on('close', function() {
+                }).on('close', ()=>{
                     resolve()
                 })
         })
