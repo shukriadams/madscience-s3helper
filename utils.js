@@ -13,26 +13,30 @@ module.exports = {
      */
     putFile : async(config, bucket, localFilepath, writePath) =>{
         return new Promise((resolve, reject) =>{
-            AWS.config.update(config)
+            try {
+                AWS.config.update(config)
 
-            const s3 = new AWS.S3()
-
-            fs.readFile(localFilepath, (err, data) =>{
-
-                if(err)
-                    return reject(err)
-
+                const s3 = new AWS.S3(),
+                    Stream = require('stream'),
+                    readStream = fs.createReadStream(localFilepath),
+                    pass = new Stream.PassThrough()
+    
+                readStream
+                  .pipe(pass)
+    
                 s3.upload({
                     Bucket: bucket,
                     Key: writePath,
-                    Body: data
+                    Body: pass
                 }, (err, result) => {
                     if(err)
                         return reject(err)
-
+    
                     resolve(result)
                 })
-            })
+            } catch (ex) {
+                reject(ex)
+            }
         })
     },
 
@@ -42,18 +46,23 @@ module.exports = {
      */
     deleteFile : async(config, bucket, filePath) =>{
         return new Promise((resolve, reject) =>{
-            AWS.config.update(config)
+            try {
+                AWS.config.update(config)
 
-            const s3 = new AWS.S3()
-            s3.deleteObject({
-                Bucket: bucket,
-                Key: filePath
-            }, err => {
-                if (err) 
-                    return reject(err)
+                const s3 = new AWS.S3()
 
-                resolve()
-            })
+                s3.deleteObject({
+                    Bucket: bucket,
+                    Key: filePath
+                }, err => {
+                    if (err) 
+                        return reject(err)
+    
+                    resolve()
+                })
+            } catch (ex){
+                reject(ex)
+            }
         })
     },
 
@@ -68,21 +77,24 @@ module.exports = {
      */
     writeFile : async(config, bucket, writePath, fileContent) =>{
         return new Promise((resolve, reject)=>{
+            try {
+                AWS.config.update(config)
 
-            AWS.config.update(config)
-
-            const s3 = new AWS.S3()
-
-            s3.upload({
-                Bucket: bucket,
-                Key: writePath,
-                Body: Buffer.from(fileContent, 'utf8')
-            }, (err, result) => {
-                if(err)
-                    return reject(err)
-
-                resolve(result)
-            })
+                const s3 = new AWS.S3()
+    
+                s3.upload({
+                    Bucket: bucket,
+                    Key: writePath,
+                    Body: Buffer.from(fileContent, 'utf8')
+                }, (err, result) => {
+                    if(err)
+                        return reject(err)
+    
+                    resolve(result)
+                })
+            } catch (ex){
+                reject(ex)
+            }
         })
     },
 
@@ -97,46 +109,52 @@ module.exports = {
      */
     getStringFile : async(config, bucket, file)=>{
         return new Promise(async (resolve, reject)=>{
-            
-            AWS.config.update(config)
+            try {
+                AWS.config.update(config)
 
-            const s3 = new AWS.S3()
-
-            s3.getObject({
-                Bucket: bucket,
-                Key: file,
-            }, (err, res) => {
-                if(err)
-                    return reject(err)
-
-                let body = res.Body
-
-                // if body is binary, convert to string
-                if (typeof(body) === 'object')
-                    body = body.toString('utf8')
-
-                resolve(body)
-            })
+                const s3 = new AWS.S3()
+    
+                s3.getObject({
+                    Bucket: bucket,
+                    Key: file,
+                }, (err, res) => {
+                    if(err)
+                        return reject(err)
+    
+                    let body = res.Body
+    
+                    // if body is binary, convert to string
+                    if (typeof(body) === 'object')
+                        body = body.toString('utf8')
+    
+                    resolve(body)
+                })
+            } catch (ex){
+                reject(ex)
+            }
 
         })
     },
 
     getBinaryFile : async(config, bucket, file)=>{
         return new Promise(async (resolve, reject)=>{
-            
-            AWS.config.update(config)
+            try {
+                AWS.config.update(config)
 
-            const s3 = new AWS.S3()
-
-            s3.getObject({
-                Bucket: bucket,
-                Key: file,
-            }, (err, res) => {
-                if(err)
-                    return reject(err)
-                
-                resolve(res.Body)
-            })
+                const s3 = new AWS.S3()
+    
+                s3.getObject({
+                    Bucket: bucket,
+                    Key: file,
+                }, (err, res) => {
+                    if(err)
+                        return reject(err)
+                    
+                    resolve(res.Body)
+                })
+            } catch (ex){
+                reject(ex)
+            }
 
         })
     },
@@ -149,23 +167,26 @@ module.exports = {
      */
     streamFile : async(config, bucket, file, stream)=>{
         return new Promise(async (resolve, reject)=>{
-            
-            AWS.config.update(config)
+            try {
+                AWS.config.update(config)
 
-            const s3 = new AWS.S3()
-            
-            const s3Stream = s3.getObject({
-                Bucket: bucket,
-                Key: file,
-            }).createReadStream()
-
-            s3Stream.pipe(stream)
-                .on('error', err => {
-                    // capture any errors that occur when writing data to the file
-                    reject(err)
-                }).on('close', ()=>{
-                    resolve()
-                })
+                const s3 = new AWS.S3()
+                
+                const s3Stream = s3.getObject({
+                    Bucket: bucket,
+                    Key: file,
+                }).createReadStream()
+    
+                s3Stream.pipe(stream)
+                    .on('error', err => {
+                        reject(err)
+                    }).on('close', ()=>{
+                        resolve()
+                    })
+    
+            } catch (ex){
+                reject(ex)
+            }
         })
     },
 
@@ -179,23 +200,26 @@ module.exports = {
      */
     downloadFile : async(config, bucket, file, localPath)=>{
         return new Promise(async (resolve, reject)=>{
-            
-            AWS.config.update(config)
+            try {
+                AWS.config.update(config)
 
-            const s3 = new AWS.S3()
-
-            s3.getObject({
-                Bucket: bucket,
-                Key: file,
-            }, (err, res) => {
-                if(err)
-                    return reject(err)
-
-                const wstream = fs.createWriteStream(localPath)
-                wstream.write(res.Body)
-                wstream.end()
-                resolve()
-            })
+                const s3 = new AWS.S3()
+    
+                s3.getObject({
+                    Bucket: bucket,
+                    Key: file,
+                }, (err, res) => {
+                    if(err)
+                        return reject(err)
+    
+                    const wstream = fs.createWriteStream(localPath)
+                    wstream.write(res.Body)
+                    wstream.end()
+                    resolve()
+                })
+            } catch (ex){
+                reject(ex)
+            }
 
         })
     },
