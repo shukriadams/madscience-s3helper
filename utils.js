@@ -252,5 +252,48 @@ module.exports = {
                     throw err
                 }
             )
-    }   
+    },
+    
+    /**
+     * 
+     */
+    async getBucketPolicy(config, Bucket){
+        return new Promise((resolve, reject)=>{
+            try {
+                AWS.config.update(config)
+                const s3 = new AWS.S3()
+
+                s3.getBucketPolicy({ Bucket }, function(err, data) {
+                    if (err) 
+                        return reject(err)
+
+                    if (!data)
+                        return reject('No policy found') 
+
+                    resolve(JSON.parse(data.Policy))
+                    
+                })
+            } catch (ex) {
+                reject(ex)
+            }
+        })
+    },
+
+    async setBucketPolicy(config, Bucket, policy){
+        return new Promise((resolve, reject)=>{
+            try {
+                AWS.config.update(config)
+                const s3 = new AWS.S3()
+
+                s3.putBucketPolicy({ Bucket, Policy : JSON.stringify(policy) }, (err, data) =>{
+                    if (err) 
+                        return reject(err)
+
+                    resolve(data)
+                  })
+            } catch (ex){
+                reject(ex)
+            }
+        })
+    }
 }
